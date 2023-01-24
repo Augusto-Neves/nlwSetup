@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import { CircleNotch } from "phosphor-react";
+import { getSummary } from "../lib/api";
 import { generateDateFromYearBeginning } from "../utils/generateDateFromYearBeginning";
 import { HabitDay } from "./HabitDay";
 
@@ -7,7 +11,31 @@ const summaryDates = generateDateFromYearBeginning();
 const minimumSummaryDateSize = 18 * 7; //18 weeks
 const amountOfDaysToFill = minimumSummaryDateSize - summaryDates.length;
 
+type Summary = {
+  id: string;
+  date: string;
+  amount: number;
+  completed: number;
+};
+
 export function SummaryTable() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["summary"],
+    queryFn: getSummary,
+  });
+
+  const summary = data as Summary[];
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex items-center justify-center ">
+        <div className="grid grid-rows-7 grid-flow-row gap-3">
+          <CircleNotch size={80} className="animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full flex">
       <div className="grid grid-rows-7 grid-flow-row gap-3">
@@ -23,15 +51,21 @@ export function SummaryTable() {
         })}
       </div>
       <div className="grid grid-rows-7 grid-flow-col gap-3">
-        {summaryDates.map((date) => {
-          return (
-            <HabitDay
-              amount={5}
-              completed={Math.round(Math.random() * 5)}
-              key={date.toString()}
-            />
-          );
-        })}
+        {summary.length > 0 &&
+          summaryDates.map((date) => {
+            const dayInSummary = summary.find((day) => {
+              return dayjs(date).isSame(day.date, "day");
+            });
+
+            return (
+              <HabitDay
+                key={date.toString()}
+                amount={dayInSummary?.amount}
+                completed={dayInSummary?.completed}
+                date={date}
+              />
+            );
+          })}
 
         {amountOfDaysToFill > 0 &&
           Array.from({ length: amountOfDaysToFill }).map((_, index) => {
