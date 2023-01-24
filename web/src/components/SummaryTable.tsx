@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 import { CircleNotch } from "phosphor-react";
 import { getSummary } from "../lib/api";
 import { generateDateFromYearBeginning } from "../utils/generateDateFromYearBeginning";
@@ -22,6 +23,12 @@ export function SummaryTable() {
   const { data, isLoading } = useQuery({
     queryKey: ["summary"],
     queryFn: getSummary,
+    retry: 6,
+    onError: () =>
+      toast.error("Houve um erro ao carregar seus hábitos", {
+        className:
+          "flex items-center w-full max-w-xs p-4 space-x-4 text-gray-500 bg-white  divide-gray-200 rounded-lg shadow top-5 right-5 dark:text-gray-400 dark:divide-gray-700 space-x dark:bg-gray-800",
+      }),
   });
 
   const summary = data as Summary[];
@@ -51,7 +58,7 @@ export function SummaryTable() {
         })}
       </div>
       <div className="grid grid-rows-7 grid-flow-col gap-3">
-        {summary.length > 0 &&
+        {summary?.length > 0 &&
           summaryDates.map((date) => {
             const dayInSummary = summary.find((day) => {
               return dayjs(date).isSame(day.date, "day");
