@@ -23,3 +23,7 @@ export async function getHabitDay(date: Date) {
 export async function toggleHabit(id: string) {
   await api.patch(`/habits/${id}/toggle`);
 }
+
+export async function createHabit(title: string, weekDays: number[]) {
+  await api.post("/habits", { title, weekDays });
+}
